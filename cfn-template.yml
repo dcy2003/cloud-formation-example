@@ -1,0 +1,5 @@
+# Provision everything manually via GUI
+# Then progressively build out this CFN script to match what worked
+# Parameterize
+# Leverage Outputs
+# Ensure clean rollback, delete-stack
