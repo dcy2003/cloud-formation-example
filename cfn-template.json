@@ -1,0 +1,164 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "Provisions a VPC, IGW, Subnet, NACL, ...",
+
+	"Parameters" : {
+
+		"VpcCidr" : {
+			"Description" : "The CIDR block the VPC will cover",
+			"Type" : "String",
+			"MinLength" : "9",
+			"MaxLength" : "18",
+			"Default" : "10.0.0.0/16",
+			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
+    	},
+
+    	"PublicSubnetCidr" : {
+			"Description" : "The CIDR block for the public subnet",
+			"Type" : "String",
+			"MinLength" : "9",
+			"MaxLength" : "18",
+			"Default" : "10.0.0.0/24",
+			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
+    	}
+
+	},
+
+	"Mappings" : {
+
+	},
+
+	"Resources" : {
+
+		"MyVPC" : {
+			"Type" : "AWS::EC2::VPC",
+			"Properties" : {
+				"CidrBlock" : { "Ref" : "VpcCidr" },
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
+			}
+		},
+
+		"InternetGateway" : {
+			"Type" : "AWS::EC2::InternetGateway",
+			"Properties" : {
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
+			}
+		},
+
+		"AttachInternetGatewayToVPC" : {
+			"Type" : "AWS::EC2::VPCGatewayAttachment",
+			"Properties" : {
+				"InternetGatewayId" : { "Ref" : "InternetGateway" },
+				"VpcId" : { "Ref" : "MyVPC" }
+			}
+		},
+
+		"PublicSubnet" : {
+			"Type" : "AWS::EC2::Subnet",
+			"Properties" : {
+				"CidrBlock" : { "Ref" : "PublicSubnetCidr" },
+				"VpcId" : { "Ref" : "MyVPC" },
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
+			}
+		},
+
+		"PublicRouteTable" : {
+			"Type" : "AWS::EC2::RouteTable",
+			"Properties" : {
+				"VpcId" : { "Ref" : "MyVPC" },
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
+			}
+		},
+
+		"Route" : {
+			"Type" : "AWS::EC2::Route",
+			"Properties" : {
+				"DestinationCidrBlock" : "0.0.0.0/0",
+				"GatewayId" : { "Ref" : "InternetGateway" },
+				"RouteTableId" : { "Ref" : "PublicRouteTable" }
+			}
+		},
+
+		"SubnetRouteTableAssociation" : {
+			"Type" : "AWS::EC2::SubnetRouteTableAssociation",
+			"Properties" : {
+				"RouteTableId" : { "Ref" : "PublicRouteTable" },
+				"SubnetId" : { "Ref" : "PublicSubnet" }
+			}
+		},
+
+		"NetworkAcl" : {
+			"Type" : "AWS::EC2::NetworkAcl",
+			"Properties" : {
+				"VpcId" : { "Ref" : "MyVPC" },
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
+			}
+		},
+
+		"InboundNetworkAclEntry" : {
+			"Type" : "AWS::EC2::NetworkAclEntry",
+			"Properties" : {
+				"CidrBlock" : "0.0.0.0/0",
+				"Egress" : "false",
+				"NetworkAclId" : { "Ref" : "NetworkAcl" },
+				"Protocol" : "-1",
+				"RuleAction" : "allow",
+				"RuleNumber" : "100"
+		   }
+		},
+
+		"OutboundNetworkAclEntry" : {
+			"Type" : "AWS::EC2::NetworkAclEntry",
+			"Properties" : {
+				"CidrBlock" : "0.0.0.0/0",
+				"Egress" : "true",
+				"NetworkAclId" : { "Ref" : "NetworkAcl" },
+				"Protocol" : "-1",
+				"RuleAction" : "allow",
+				"RuleNumber" : "100"
+		   }
+		},
+
+		"SubnetNetworkAclAssociation" : {
+			"Type" : "AWS::EC2::SubnetNetworkAclAssociation",
+			"Properties" : {
+				"SubnetId" : { "Ref" : "PublicSubnet" },
+				"NetworkAclId" : { "Ref" : "NetworkAcl" }
+			}
+		}
+
+	},
+
+	"Outputs" : {
+
+		"VpcId" : {
+			"Description" : "The ID of the VPC",
+			"Value" : { "Ref" : "MyVPC" }
+		},
+
+		"InternetGatewayId" : {
+			"Description" : "The ID of the Internet Gateway",
+			"Value" : { "Ref" : "InternetGateway" }
+		},
+
+		"PublicSubnetId" : {
+			"Description" : "The ID of the public subnet",
+			"Value" : { "Ref" : "PublicSubnet" }
+		},
+
+		"PublicRouteTableId" : {
+			"Description" : "The ID of the Public Route Table",
+			"Value" : { "Ref" : "PublicRouteTable" }
+		},
+
+		"NetworkAclId" : {
+			"Description" : "The ID of the NACL",
+			"Value" : { "Ref" : "NetworkAcl" }
+		}
+
+	}
+
+}
