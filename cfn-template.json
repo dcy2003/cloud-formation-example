@@ -23,6 +23,15 @@
 			"Default" : "10.0.0.0/24",
 			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
 			"ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
+    	},
+
+    	"MyIP" : {
+			"Description" : "The IP from which to allow SSH access via port 22",
+			"Type" : "String",
+			"MinLength" : "9",
+			"MaxLength" : "18",
+			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription" : "must be a valid IP CIDR range of the form x.x.x.x/x."
     	}
 
 	},
@@ -127,6 +136,23 @@
 			"Properties" : {
 				"SubnetId" : { "Ref" : "PublicSubnet" },
 				"NetworkAclId" : { "Ref" : "NetworkAcl" }
+			}
+		},
+
+		"InstanceSecurityGroup" : {
+			"Type" : "AWS::EC2::SecurityGroup",
+			"Properties" : {
+				"GroupDescription" : "Enable SSH access via port 22",
+				"SecurityGroupIngress" : [
+					{
+						"CidrIp" : { "Fn::Join" : [ "/", [{ "Ref" : "MyIP" }, "32"]]},
+						"FromPort" : "22",
+						"IpProtocol" : "tcp",
+						"ToPort" : "22"
+					}
+				],
+				"VpcId" : { "Ref" : "MyVPC" },
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } } ]
 			}
 		}
 
