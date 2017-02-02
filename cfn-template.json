@@ -51,11 +51,11 @@
 
 	"Mappings" : {
 		"RegionMap" : {
-			"us-east-1" : { "amiId" : _ },
-			"us-east-2" : { "amiId" : _ },
-			"us-west-1" : { "amiId" : _ },
-			"us-west-2" : { "amiId" : _ },
-			"us-iso-east-1" : { "amiId" : _ }
+			"us-east-1" : { "amiId" : "ami-0b33d91d" },
+			"us-east-2" : { "amiId" : "ami-c55673a0" },
+			"us-west-1" : { "amiId" : "ami-165a0876" },
+			"us-west-2" : { "amiId" : "ami-f173cc91" },
+			"us-iso-east-1" : { "amiId" : "C2S_AMI_ID_GOES_HERE" }
 		}
 	},
 
