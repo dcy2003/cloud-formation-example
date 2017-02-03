@@ -65,6 +65,11 @@
 			"Default" : "10.0.0.11",
 			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
 			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
+    	},
+
+    	"BootstrapScript" : {
+    		"Description" : "Bash script to be executed via cloud-init on Ansible node",
+    		"Type" : "String"
     	}
 
 	},
@@ -247,6 +252,7 @@
 						"PrivateIpAddress" : { "Ref" : "AnsibleNodePrivateIP" }
 					}
 				],
+				"UserData" : { "Fn::Base64" : { "Ref" : "BootstrapScript" } },
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
 			}
 		},
