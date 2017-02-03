@@ -15,4 +15,4 @@
 
 2. Run `./create-stack.sh`
 3. Explore!
-4. Run './delete-stack.sh' to tear down all resources when finished
+4. Run `./delete-stack.sh` to tear down all resources when finished
