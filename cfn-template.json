@@ -45,6 +45,16 @@
     		"Type" : "String",
     		"Default" : "t2.micro",
     		"AllowedValues" : [ "t2.micro", "t2.nano", "t2.small" ]
+    	},
+
+    	"AnsibleNodePrivateIP" : {
+			"Description" : "The private IP of the Ansible node",
+			"Type" : "String",
+			"MinLength" : "7",
+			"MaxLength" : "15",
+			"Default" : "10.0.0.10",
+			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
+			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
     	}
 
 	},
@@ -198,7 +208,8 @@
 						"DeleteOnTermination" : "true",
 						"DeviceIndex" : "0",
 						"SubnetId" : { "Ref" : "PublicSubnet" },
-						"GroupSet" : [ { "Ref" : "InstanceSecurityGroup" } ]
+						"GroupSet" : [ { "Ref" : "InstanceSecurityGroup" } ],
+						"PrivateIpAddress" : { "Ref" : "AnsibleNodePrivateIP" }
 					}
 				],
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]

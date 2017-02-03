@@ -1,6 +1,12 @@
 #!/bin/bash
 
-# install Git, AWS CLI, Ansible
+# NOTE: aws-cli and pip are preinstalled on Amazon Linux AMI
+
+# install Git
+sudo yum install git -y
+
+# install Ansible
+sudo pip install ansible
 
 # Download Git deployment key from S3
 
