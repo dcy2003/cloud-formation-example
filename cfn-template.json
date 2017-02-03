@@ -181,7 +181,6 @@
 			"Properties" : {
 				"InstanceType" : { "Ref" : "InstanceType" },
 				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
-				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
 				"KeyName" : { "Ref" : "EC2SshKey" },
 				"BlockDeviceMappings" : [
 					{
@@ -191,6 +190,15 @@
 							"DeleteOnTermination" : "true",
 							"VolumeSize" : "8"
 						}
+					}
+				],
+				"NetworkInterfaces" : [
+					{
+						"AssociatePublicIpAddress" : "true",
+						"DeleteOnTermination" : "true",
+						"DeviceIndex" : "0",
+						"SubnetId" : { "Ref" : "PublicSubnet" },
+						"GroupSet" : [ { "Ref" : "InstanceSecurityGroup" } ]
 					}
 				],
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
