@@ -181,7 +181,7 @@
 			"Properties" : {
 				"InstanceType" : { "Ref" : "InstanceType" },
 				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
-				"SecurityGroups" : [ { "Ref" : "InstanceSecurityGroup" } ],
+				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
 				"KeyName" : { "Ref" : "EC2SshKey" },
 				"BlockDeviceMappings" : [
 					{

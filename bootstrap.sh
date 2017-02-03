@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # install Git, AWS CLI, Ansible
-# or use Linux AMI and avoid first two
 
 # Download Git deployment key from S3
 
