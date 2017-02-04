@@ -1,3 +1,5 @@
+A simple CloudFormation template, a create script, a bootstrap example, and a delete script
+
 ## Prerequisites
 
 * An AWS account
