@@ -1,14 +1,14 @@
 A simple CloudFormation template, a create script, a bootstrap example, and a delete script
 
-Provisions: A VPC w/IGW, a Subnet, a NACL, a Security Group, and two EC2 instances
+Provisions: a VPC w/IGW, a Subnet, a NACL, a Security Group, and two EC2 instances
 
-Defaults are provised for most parameters with ability to override
+Defaults are provided for most parameters with ability to override
 
 ## Prerequisites
 
-* An AWS account
-* The [AWS CLI](https://aws.amazon.com/cli/)
-* An IAM user with sufficient privileges and an access key for this user
+* AWS account
+* [AWS CLI](https://aws.amazon.com/cli/)
+* IAM user with sufficient privileges and an access key for this user
 * Run `aws configure` to set the desired region, access key, secret access key, etc.
 * After cloning this repository, create a key pair in the desired AWS region, download it, and edit `create-stack.sh` to point to it.
 
