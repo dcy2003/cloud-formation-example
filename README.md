@@ -1,5 +1,9 @@
 A simple CloudFormation template, a create script, a bootstrap example, and a delete script
 
+Provisions: A VPC w/IGW, a Subnet, a NACL, a Security Group, and two EC2 instances
+
+Defaults are provised for most parameters with ability to override
+
 ## Prerequisites
 
 * An AWS account
