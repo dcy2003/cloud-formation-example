@@ -229,6 +229,7 @@
 			"Type" : "AWS::EC2::Instance",
 			"DependsOn" : "AttachInternetGatewayToVPC",
 			"Properties" : {
+				"IamInstanceProfile" : { "Ref" : "S3InstanceProfile" },
 				"InstanceType" : { "Ref" : "InstanceType" },
 				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
 				"KeyName" : { "Ref" : "EC2SshKey" },
@@ -278,6 +279,49 @@
 					}
 				],
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
+			}
+		},
+
+		"S3AccessRole" : {
+			"Type" : "AWS::IAM::Role",
+			"Properties" : {
+				"AssumeRolePolicyDocument" : {
+					"Statement" : [
+						{
+							"Effect" : "Allow",
+							"Principal" : {
+								"Service" : [ "ec2.amazonaws.com" ]
+							},
+							"Action" : [ "sts:AssumeRole" ]
+						}
+					]
+				},
+				"Path" : "/"
+			}
+		},
+
+		"S3AccessPolicy" : {
+			"Type" : "AWS::IAM::Policy",
+			"Properties" : {
+				"PolicyName" : "S3Access",
+				"PolicyDocument" : {
+					"Statement" : [
+						{
+							"Effect" : "Allow",
+							"Action" : "s3:GetObject",
+							"Resource" : "*"
+						}
+					]
+				},
+				"Roles" : [ { "Ref" : "S3AccessRole" } ]
+			}
+		},
+
+		"S3InstanceProfile" : {
+			"Type" : "AWS::IAM::InstanceProfile",
+			"Properties" : {
+				"Path" : "/",
+				"Roles" : [ { "Ref" : "S3AccessRole" } ]
 			}
 		}
 
