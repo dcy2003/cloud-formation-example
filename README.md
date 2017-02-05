@@ -1,6 +1,10 @@
-Demonstrates the use of CloudFormation to:
-* Provision two EC2 instances (as well as a VPC w/IGW, a Subnet, a NACL, a SecurityGroup, etc.)
-* Bootstrap one instance with Git and Ansible, download configuration from S3, clone a Git repository, and execute an Ansible playbook against the other instance
+Demonstrates the use of CloudFormation to provision and bootstrap two EC2 instances with supporting IAM instance role, VPC, Subnet, NACL, Security Group, etc.
+
+One of the EC2 instances is passed a bootstrap script that demonstrates how to:
+* install Ansible
+* download resources from S3 to configure SSH to other instance
+* clone a Git repository
+* execute an Ansible playbook to configure the other instance
 
 Defaults are provided for most parameters with ability to override
 
@@ -8,12 +12,22 @@ Defaults are provided for most parameters with ability to override
 
 * AWS account
 * [AWS CLI](https://aws.amazon.com/cli/)
-* IAM user with sufficient privileges and an access key for this user
-* Run `aws configure` to set the desired region, access key, secret access key, etc.
-* After cloning this repository, create a key pair in the desired AWS region, download it, and edit `create-stack.sh` to point to it.
+* IAM user with sufficient privileges + access key
+* Run `aws configure` to set the desired region, access key, secret access key
+* A key pair in the desired AWS region
 
-## Running
+## To Run
 
+* Edit `create-stack.sh` as necessary
+** Ensure you pass the correct value for `EC2SshKey`
 * Run `./create-stack.sh` to provison and configure all resources
-* Explore!
+
+## Take Note Of:
+
+* point
+* out
+* things
+
+## To Cleanup
+
 * When finished, run `./delete-stack.sh` to tear down all resources
