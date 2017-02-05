@@ -68,7 +68,7 @@
     	},
 
     	"BootstrapScript" : {
-    		"Description" : "Bash script to be executed via cloud-init on Ansible node",
+    		"Description" : "Bash script to be executed via cloud-init on Ansible node (must be base64 encoded)",
     		"Type" : "String"
     	}
 
@@ -253,7 +253,7 @@
 						"PrivateIpAddress" : { "Ref" : "AnsibleNodePrivateIP" }
 					}
 				],
-				"UserData" : { "Fn::Base64" : { "Ref" : "BootstrapScript" } },
+				"UserData" : { "Ref" : "BootstrapScript" },
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
 			}
 		},
