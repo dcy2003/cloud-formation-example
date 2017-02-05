@@ -24,12 +24,6 @@ Example bootstrap script demonstrates how to:
  * see `cfn-template.json` for complete list of parameters
 * Run `./create-stack.sh` to provison and configure all resources.
 
-## Take Note Of:
-
-* point
-* out
-* things
-
 ## Cleanup:
 
 * When finished, run `./delete-stack.sh` to tear down all resources.
