@@ -1,0 +1,19 @@
+--- # This is an example playbook to install HTTPD
+- hosts: slaves
+  remote_user: ec2-user
+  become: yes
+  become_method: sudo
+  conneciton: ssh
+  gather_facts: yes
+  tasks: 
+  - name: Install HTTPD server on slave nodes
+    yum:
+      name: httpd
+      state: latest
+    notify:
+    - startservice
+  handlers:
+  - name: startservice
+    service:
+      name: httpd
+      state: restarted
