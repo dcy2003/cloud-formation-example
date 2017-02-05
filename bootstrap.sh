@@ -20,7 +20,7 @@ chown ec2-user:ec2-user /home/ec2-user/.ssh/config
 
 # Add slave node to known_hosts
 slaveip=10.0.0.11
-ssh-keyscan $slaveip >> /home/ec2-user/.ssh/known_hosts
+ssh-keyscan -H $slaveip >> /home/ec2-user/.ssh/known_hosts
 chmod 644 /home/ec2-user/.ssh/known_hosts
 chown ec2-user:ec2-user /home/ec2-user/.ssh/known_hosts
 
@@ -36,13 +36,16 @@ chown ec2-user:ec2-user /etc/ansible/hosts
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 for github_ip in `dig +short github.com`
 do
-  ssh-keyscan $github_ip >> ~/.ssh/known_hosts
+  ssh-keyscan -H $github_ip >> ~/.ssh/known_hosts
 done
+cat /home/ec2-user/.ssh/known_hosts >> ~/.ssh/known_hosts
 
 # Download Ansible Playbook from Git
 cp /home/ec2-user/.ssh/config ~/.ssh/config
 chown root:root ~/.ssh/config
+cd /usr/tmp
 git clone git@github.com:dcy2003/cloud-formation-example.git
-#chown -R ec2-user:ec2-user /home/ec2-user/cloud-formation-example/
 
 # Execute Playbook
+# Specifying full path for ansible-playbook since it is not found in the path for the duration of userdata script for some reason
+/usr/local/bin/ansible-playbook /usr/tmp/cloud-formation-example/ansible-playbook.yaml
