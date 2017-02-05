@@ -1,6 +1,6 @@
-A simple CloudFormation template, a create script, a bootstrap example, and a delete script
-
-Provisions: a VPC w/IGW, a Subnet, a NACL, a Security Group, and two EC2 instances
+Demonstrates the use of CloudFormation to:
+* Provision two EC2 instances (as well as a VPC w/IGW, a Subnet, a NACL, a SecurityGroup, etc.)
+* Bootstrap one instance with Git and Ansible, download configuration from S3, clone a Git repository, and execute an Ansible playbook against the other instance
 
 Defaults are provided for most parameters with ability to override
 
