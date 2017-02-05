@@ -1,0 +1,9 @@
+Host slave
+  HostName 10.0.0.11
+  User ec2-user
+  IdentityFile /home/ec2-user/.ssh/ssh-key.pem
+
+Host github.com
+  RSAAuthentication yes
+  User ec2-user
+  IdentityFile /home/ec2-user/.ssh/ssh-key.pem
