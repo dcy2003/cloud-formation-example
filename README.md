@@ -1,4 +1,4 @@
-Demonstrates the use of CloudFormation to provision and bootstrap two EC2 instances with supporting IAM instance role, VPC, Subnet, NACL, Security Group, etc.
+**Demonstrates the use of CloudFormation to provision and bootstrap two EC2 instances** with supporting IAM instance role, VPC, Subnet, NACL, Security Group, etc.
 
 One of the EC2 instances is passed a bootstrap script that demonstrates how to:
 * install Ansible
