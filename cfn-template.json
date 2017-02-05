@@ -58,7 +58,17 @@
     	},
 
     	"SlaveNodePrivateIP" : {
-			"Description" : "The private IP of the slave node",
+			"Description" : "The private IP of the first slave node",
+			"Type" : "String",
+			"MinLength" : "7",
+			"MaxLength" : "15",
+			"Default" : "10.0.0.11",
+			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
+			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
+    	},
+
+    	"SlaveNode2PrivateIP" : {
+			"Description" : "The private IP of the second slave node",
 			"Type" : "String",
 			"MinLength" : "7",
 			"MaxLength" : "15",
@@ -282,6 +292,30 @@
 			}
 		},
 
+		"SlaveNode2" : {
+			"Type" : "AWS::EC2::Instance",
+			"DependsOn" : "AttachInternetGatewayToVPC",
+			"Properties" : {
+				"InstanceType" : { "Ref" : "InstanceType" },
+				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
+				"KeyName" : { "Ref" : "EC2SshKey" },
+				"SubnetId" : { "Ref" : "PublicSubnet" },
+				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
+				"PrivateIpAddress" : { "Ref" : "SlaveNode2PrivateIP" },
+				"BlockDeviceMappings" : [
+					{
+						"DeviceName" : "/dev/xvda",
+						"Ebs" : {
+							"VolumeType" : "gp2",
+							"DeleteOnTermination" : "true",
+							"VolumeSize" : "8"
+						}
+					}
+				],
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
+			}
+		},
+
 		"S3AccessRole" : {
 			"Type" : "AWS::IAM::Role",
 			"Properties" : {
@@ -309,6 +343,11 @@
 						{
 							"Effect" : "Allow",
 							"Action" : "s3:GetObject",
+							"Resource" : "*"
+						},
+						{
+							"Effect" : "Allow",
+							"Action" : "ec2:DescribeInstances",
 							"Resource" : "*"
 						}
 					]
