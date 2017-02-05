@@ -1,12 +1,13 @@
-**Demonstrates the use of CloudFormation to provision and bootstrap two EC2 instances** with supporting IAM instance role, VPC, Subnet, NACL, Security Group, etc.
+# EC2 Bootstrap Example 
 
-One of the EC2 instances is passed a bootstrap script that demonstrates how to:
-* install Ansible
-* download resources from S3 to configure SSH to other instance
-* clone a Git repository
-* execute an Ansible playbook to configure the other instance
+**Uses CloudFormation, cloud-init, and Ansible to provision and bootstrap two EC2 instances**
 
-Defaults are provided for most parameters with ability to override
+Example bootstrap script demonstrates how to:
+
+* Install Ansible
+* Download resources from S3 to configure SSH to other instance
+* Clone a Git repository
+* Execute an Ansible playbook to configure the other instance
 
 ## Prerequisites
 
@@ -19,7 +20,8 @@ Defaults are provided for most parameters with ability to override
 ## To Run
 
 * Edit `create-stack.sh` as necessary
-** Ensure you pass the correct value for `EC2SshKey`
+ * Ensure you pass the correct value for `EC2SshKey`
+ * See `cfn-template.json` for complete list of parameters
 * Run `./create-stack.sh` to provison and configure all resources
 
 ## Take Note Of:
@@ -28,6 +30,6 @@ Defaults are provided for most parameters with ability to override
 * out
 * things
 
-## To Cleanup
+## Cleanup
 
 * When finished, run `./delete-stack.sh` to tear down all resources
