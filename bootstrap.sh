@@ -3,7 +3,7 @@
 # NOTE: aws-cli and pip are preinstalled on Amazon Linux AMI
 
 # install Git
-sudo yum install git -y
+sudo yum install git jq -y
 
 # install Ansible
 sudo pip install ansible
@@ -24,10 +24,12 @@ touch /etc/ansible/hosts
 
 echo "[slaves]" >> /etc/ansible/hosts
 
-slaveips=`aws ec2 describe-instances --filters "Name=tag:Name,Values=SlaveNode" | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`
+# FIXME parameterize region
+slaveips=`aws ec2 describe-instances --region us-east-2 --filters "Name=tag:Name,Values=SlaveNode" | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`
 
 for slaveip in $slaveips
 do
+  echo "$slaveip"
   ssh-keyscan -H $slaveip >> /home/ec2-user/.ssh/known_hosts
   echo "$slaveip ansible_user=ec2-user ansible_connection=ssh ansible_ssh_private_key_file=/home/ec2-user/.ssh/ssh-key.pem" >> /etc/ansible/hosts
 done
