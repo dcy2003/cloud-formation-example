@@ -9,7 +9,7 @@ Example bootstrap script demonstrates how to:
 * Clone a Git repository
 * Execute an Ansible playbook to configure the other instance
 
-## Prerequisites
+## Prerequisites:
 
 * AWS account
 * [AWS CLI](https://aws.amazon.com/cli/)
@@ -17,12 +17,12 @@ Example bootstrap script demonstrates how to:
 * Run `aws configure` to set the desired region, access key, secret access key
 * A key pair in the desired AWS region
 
-## To Run
+## To Run:
 
-* Edit `create-stack.sh` as necessary
- * Ensure you pass the correct value for `EC2SshKey`
- * See `cfn-template.json` for complete list of parameters
-* Run `./create-stack.sh` to provison and configure all resources
+* Edit `create-stack.sh` as necessary:
+ * ensure you pass the correct value for `EC2SshKey`
+ * see `cfn-template.json` for complete list of parameters
+* Run `./create-stack.sh` to provison and configure all resources.
 
 ## Take Note Of:
 
@@ -30,6 +30,6 @@ Example bootstrap script demonstrates how to:
 * out
 * things
 
-## Cleanup
+## Cleanup:
 
-* When finished, run `./delete-stack.sh` to tear down all resources
+* When finished, run `./delete-stack.sh` to tear down all resources.
