@@ -40,6 +40,13 @@
     		"ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
     	},
 
+    	"S3LocationOfPrivateKey" : {
+    		"Description" : "The S3 location of the private key that will be used to SSH from Ansible node to slave nodes",
+    		"Type" : "String",
+    		"AllowedPattern" : "^s3://.*",
+    		"ConstraintDescription" : "Must be of the format s3://bucket_path/file"
+    	},
+
     	"InstanceType" : {
     		"Description" : "",
     		"Type" : "String",
@@ -81,11 +88,11 @@
 
 	"Mappings" : {
 		"RegionMap" : {
-			"us-east-1" : { "amiId" : "ami-0b33d91d" },
-			"us-east-2" : { "amiId" : "ami-c55673a0" },
-			"us-west-1" : { "amiId" : "ami-165a0876" },
-			"us-west-2" : { "amiId" : "ami-f173cc91" },
-			"us-iso-east-1" : { "amiId" : "C2S_AMI_ID_GOES_HERE" }
+			"us-east-1" : { "amiId" : "ami-0b33d91d", "sshUser" : "ec2-user" },
+			"us-east-2" : { "amiId" : "ami-c55673a0", "sshUser" : "ec2-user" },
+			"us-west-1" : { "amiId" : "ami-165a0876", "sshUser" : "ec2-user" },
+			"us-west-2" : { "amiId" : "ami-f173cc91", "sshUser" : "ec2-user" },
+			"us-iso-east-1" : { "amiId" : "C2S_AMI_ID_GOES_HERE", "sshUser" : "ec2-user" }
 		}
 	},
 
@@ -279,11 +286,26 @@
 				"UserData" : { "Fn::Base64" :
 					{ "Fn::Join" : ["", [
 						"#!/bin/bash -xe\n",
+
 						"# Install the files and packages from the metadata\n",
 						"/opt/aws/bin/cfn-init -v ",
 						"         --stack ", { "Ref" : "AWS::StackName" },
 						"         --resource AnsibleNode ",
-						"         --region ", { "Ref" : "AWS::Region" }, "\n"
+						"         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+						"# Install Ansible\n",
+						"pip install ansible\n",
+
+						"# Variable Declarations\n",
+						"region=", { "Ref" : "AWS::Region" }, "\n",
+						"ssh_user=", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "\n",
+						"slave_node_ssh_key=/home/$ssh_user/.ssh/ssh-key.pem\n",
+						"s3_key_location=", { "Ref" : "S3LocationOfPrivateKey" }, "\n",
+
+						"# Download SSH key from S3\n",
+						"aws s3 cp --region $region $s3_key_location $slave_node_ssh_key\n",
+						"chmod 400 $slave_node_ssh_key\n",
+						"chown $ssh_user:$ssh_user $slave_node_ssh_key\n"
 					]]}
 				},
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
