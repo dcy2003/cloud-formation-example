@@ -365,6 +365,9 @@
 						"ssh_user=", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "\n",
 						"slave_node_ssh_key=/home/$ssh_user/.ssh/ssh-key.pem\n",
 						"s3_key_location=", { "Ref" : "S3LocationOfPrivateKey" }, "\n",
+						"ssh_user_known_hosts=/home/$ssh_user/.ssh/known_hosts\n",
+						"ssh_user_ssh_config=/home/$ssh_user/.ssh/config\n",
+						"temp_dir=/usr/tmp\n",
 
 						"# Download SSH key from S3\n",
 						"aws s3 cp --region $region $s3_key_location $slave_node_ssh_key\n",
@@ -372,15 +375,36 @@
 						"chown $ssh_user:$ssh_user $slave_node_ssh_key\n",
 
 						"# Dynamically add IPs of slave nodes to config files\n",
-						"touch /root/.ssh/known_hosts\n",
-						"chmod 600 /root/.ssh/known_hosts\n",
-						"chown root:root /root/.ssh/known_hosts\n",
+						"touch ~/.ssh/known_hosts\n",
+						"chmod 600 ~/.ssh/known_hosts\n",
+						"chown root:root ~/.ssh/known_hosts\n",
 						"slaveips=`aws ec2 describe-instances --region $region --filters 'Name=tag:Name,Values=SlaveNode' | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`\n",
+						"idx=1\n",
 						"for slaveip in $slaveips\n",
 						"do\n",
-						"  ssh-keyscan -H $slaveip >> /root/.ssh/known_hosts\n",
+						"  ssh-keyscan -H $slaveip >> ~/.ssh/known_hosts\n",
 						"  echo \"$slaveip ansible_user=$ssh_user ansible_connection=ssh ansible_ssh_private_key_file=$slave_node_ssh_key\" >> /etc/ansible/hosts\n",
-						"done\n"
+						"  echo \"Host slave$idx\" >> ~/.ssh/config\n",
+						"  echo \"  HostName $slaveip\" >> ~/.ssh/config\n",
+						"  echo \"  User $ssh_user\" >> ~/.ssh/config\n",
+						"  echo \"  IdentityFile $slave_node_ssh_key\n\" >> ~/.ssh/config\n",
+						"  ((idx+=1))\n",
+						"done\n",
+
+						"# Add github.com and its associated IPs to known_hosts\n",
+						"ssh-keyscan -H github.com >> ~/.ssh/known_hosts\n",
+						"for github_ip in `dig +short github.com`\n",
+						"do\n",
+						"  ssh-keyscan -H $github_ip >> ~/.ssh/known_hosts\n",
+						"done\n",
+
+						"cat ~/.ssh/known_hosts >> $ssh_user_known_hosts\n",
+						"chmod 600 $ssh_user_known_hosts\n",
+						"chown $ssh_user:$ssh_user $ssh_user_known_hosts\n",
+
+						"cat ~/.ssh/config >> $ssh_user_ssh_config\n",
+						"chmod 400 $ssh_user_ssh_config\n",
+						"chown $ssh_user:$ssh_user $ssh_user_ssh_config\n"
 					]]}
 				},
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
