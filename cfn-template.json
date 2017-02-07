@@ -64,7 +64,7 @@
 			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
     	},
 
-    	"SlaveNodePrivateIP" : {
+    	"SlaveNode1PrivateIP" : {
 			"Description" : "The private IP of the first slave node",
 			"Type" : "String",
 			"MinLength" : "7",
@@ -237,9 +237,55 @@
 			}
 		},
 
+		"SlaveNode1" : {
+			"Type" : "AWS::EC2::Instance",
+			"Properties" : {
+				"InstanceType" : { "Ref" : "InstanceType" },
+				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
+				"KeyName" : { "Ref" : "EC2SshKey" },
+				"SubnetId" : { "Ref" : "PublicSubnet" },
+				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
+				"PrivateIpAddress" : { "Ref" : "SlaveNode1PrivateIP" },
+				"BlockDeviceMappings" : [
+					{
+						"DeviceName" : "/dev/xvda",
+						"Ebs" : {
+							"VolumeType" : "gp2",
+							"DeleteOnTermination" : "true",
+							"VolumeSize" : "8"
+						}
+					}
+				],
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
+			}
+		},
+
+		"SlaveNode2" : {
+			"Type" : "AWS::EC2::Instance",
+			"Properties" : {
+				"InstanceType" : { "Ref" : "InstanceType" },
+				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
+				"KeyName" : { "Ref" : "EC2SshKey" },
+				"SubnetId" : { "Ref" : "PublicSubnet" },
+				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
+				"PrivateIpAddress" : { "Ref" : "SlaveNode2PrivateIP" },
+				"BlockDeviceMappings" : [
+					{
+						"DeviceName" : "/dev/xvda",
+						"Ebs" : {
+							"VolumeType" : "gp2",
+							"DeleteOnTermination" : "true",
+							"VolumeSize" : "8"
+						}
+					}
+				],
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
+			}
+		},
+
 		"AnsibleNode" : {
 			"Type" : "AWS::EC2::Instance",
-			"DependsOn" : "AttachInternetGatewayToVPC",
+			"DependsOn" : [ "AttachInternetGatewayToVPC" , "SlaveNode1", "SlaveNode2" ],
 			"Metadata" : {
 				"AWS::CloudFormation::Init" : {
 					"config" : {
@@ -397,6 +443,16 @@
 		"AnsibleNodeId" : {
 			"Description" : "The ID of the Ansible instance",
 			"Value" : { "Ref" : "AnsibleNode" }
+		},
+
+		"SlaveNode1Id" : {
+			"Description" : "The ID of the first slave instance",
+			"Value" : { "Ref" : "SlaveNode1" }
+		},
+
+		"SlaveNode2Id" : {
+			"Description" : "The ID of the second slave instance",
+			"Value" : { "Ref" : "SlaveNode2" }
 		}
 
 	}
