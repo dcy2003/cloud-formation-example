@@ -16,11 +16,14 @@ Example bootstrap script demonstrates how to:
 * IAM user with sufficient privileges + access key
 * Run `aws configure` to set the desired region, access key, secret access key
 * A key pair in the desired AWS region
+ * Download the private key
+ * Upload the private key to a S3 bucket (do not make public)
 
 ## To Run:
 
 * Edit `create-stack.sh` as necessary:
  * ensure you pass the correct value for `EC2SshKey`
+ * ensure you pass in the correct value for `S3LocationOfPrivateKey`
  * see `cfn-template.json` for complete list of parameters
 * Run `./create-stack.sh` to provison and configure all resources.
 
