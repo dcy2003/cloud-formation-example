@@ -300,10 +300,21 @@
 						"sources" : {},
 						"files" : {
 							"/etc/ansible/hosts" : {
-								"content" : "[slaves]",
-								"mode" : "000644",
+								"content" : "[slaves]\n",
+								"mode" : "000600",
 								"owner" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] },
 								"group" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }
+							},
+							"/root/.ssh/config" : {
+								"content" : { "Fn::Join" : ["", [
+									"Host github.com\n",
+									"  RSAAuthentication yes\n",
+									"  User ", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "\n",
+									"  IdentityFile /home/", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "/.ssh/ssh-key.pem\n\n"
+								]]},
+								"mode" : "000400",
+								"owner" : "root",
+								"group" : "root"
 							}
 						},
 						"commands" : {},
@@ -360,7 +371,16 @@
 						"chmod 400 $slave_node_ssh_key\n",
 						"chown $ssh_user:$ssh_user $slave_node_ssh_key\n",
 
-						"slaveips=`aws ec2 describe-instances --region $region --filters 'Name=tag:Name,Values=SlaveNode' | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`\n"
+						"# Dynamically add IPs of slave nodes to config files\n",
+						"touch /root/.ssh/known_hosts\n",
+						"chmod 600 /root/.ssh/known_hosts\n",
+						"chown root:root /root/.ssh/known_hosts\n",
+						"slaveips=`aws ec2 describe-instances --region $region --filters 'Name=tag:Name,Values=SlaveNode' | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`\n",
+						"for slaveip in $slaveips\n",
+						"do\n",
+						"  ssh-keyscan -H $slaveip >> /root/.ssh/known_hosts\n",
+						"  echo \"$slaveip ansible_user=$ssh_user ansible_connection=ssh ansible_ssh_private_key_file=$slave_node_ssh_key\" >> /etc/ansible/hosts\n",
+						"done\n"
 					]]}
 				},
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
