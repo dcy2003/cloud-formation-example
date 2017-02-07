@@ -82,6 +82,18 @@
 			"Default" : "10.0.0.12",
 			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
 			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
+    	},
+
+    	"GitHubRepository" : {
+    		"Description" : "The GitHub repository to pull Ansible playbook from",
+    		"Type" : "String",
+    		"AllowedPattern" : "^git@github.com:.*",
+    		"ConstraintDescription" : "Must be of the format git@github.com:user/repository.git (use SSH not HTTPS repository location)"
+    	},
+
+    	"AnsiblePlaybook" : {
+    		"Description" : "The Ansible playbook to execute against the slave nodes",
+    		"Type" : "String"
     	}
 
 	},
@@ -368,6 +380,8 @@
 						"ssh_user_known_hosts=/home/$ssh_user/.ssh/known_hosts\n",
 						"ssh_user_ssh_config=/home/$ssh_user/.ssh/config\n",
 						"temp_dir=/usr/tmp\n",
+						"git_repo=", { "Ref" : "GitHubRepository" }, "\n",
+						"ansible_playbook=", { "Ref" : "AnsiblePlaybook" }, "\n",
 
 						"# Download SSH key from S3\n",
 						"aws s3 cp --region $region $s3_key_location $slave_node_ssh_key\n",
@@ -398,13 +412,22 @@
 						"  ssh-keyscan -H $github_ip >> ~/.ssh/known_hosts\n",
 						"done\n",
 
+						"# Mirror ec2-users known_hosts file with root version\n",
 						"cat ~/.ssh/known_hosts >> $ssh_user_known_hosts\n",
 						"chmod 600 $ssh_user_known_hosts\n",
 						"chown $ssh_user:$ssh_user $ssh_user_known_hosts\n",
 
+						"# Mirror ec2-users .ssh/config file with root version\n",
 						"cat ~/.ssh/config >> $ssh_user_ssh_config\n",
 						"chmod 400 $ssh_user_ssh_config\n",
-						"chown $ssh_user:$ssh_user $ssh_user_ssh_config\n"
+						"chown $ssh_user:$ssh_user $ssh_user_ssh_config\n",
+
+						"# Pull Ansible playbook from Git repository\n",
+						"cd $temp_dir\n",
+						"git clone $git_repo .\n",
+
+						"# Execute Playbook\n",
+						"/usr/local/bin/ansible-playbook $ansible_playbook\n"
 					]]}
 				},
 				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
