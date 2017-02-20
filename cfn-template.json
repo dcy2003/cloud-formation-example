@@ -215,6 +215,7 @@
 			"Type" : "AWS::EC2::Instance",
 			"DependsOn" : [ "AttachInternetGatewayToVPC" ],
 			"Properties" : {
+				"IamInstanceProfile" : { "Ref" : "SlaveNodeInstanceProfile" },
 				"InstanceType" : { "Ref" : "InstanceType" },
 				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
 				"KeyName" : { "Ref" : "EC2SshKey" },
@@ -242,7 +243,7 @@
 			}
 		},
 
-		"S3AccessRole" : {
+		"RoleForSlaveNode" : {
 			"Type" : "AWS::IAM::Role",
 			"Properties" : {
 				"AssumeRolePolicyDocument" : {
@@ -278,15 +279,15 @@
 						}
 					]
 				},
-				"Roles" : [ { "Ref" : "S3AccessRole" } ]
+				"Roles" : [ { "Ref" : "RoleForSlaveNode" } ]
 			}
 		},
 
-		"S3InstanceProfile" : {
+		"SlaveNodeInstanceProfile" : {
 			"Type" : "AWS::IAM::InstanceProfile",
 			"Properties" : {
 				"Path" : "/",
-				"Roles" : [ { "Ref" : "S3AccessRole" } ]
+				"Roles" : [ { "Ref" : "RoleForSlaveNode" } ]
 			}
 		}
 
@@ -327,6 +328,21 @@
 		"SlaveNode1Id" : {
 			"Description" : "The ID of the first slave instance",
 			"Value" : { "Ref" : "SlaveNode1" }
+		},
+
+		"RoleForSlaveNodeId" : {
+			"Description" : "The ID of the IAM role",
+			"Value" : { "Ref" : "RoleForSlaveNode" }
+		},
+
+		"S3AccessPolicyId" : {
+			"Description" : "The ID of the IAM access policy for S3",
+			"Value" : { "Ref" : "S3AccessPolicy" }
+		},
+
+		"SlaveNodeInstanceProfileId" : {
+			"Description" : "The ID of the IAM instance profile",
+			"Value" : { "Ref" : "SlaveNodeInstanceProfile" }
 		}
 
 	}
