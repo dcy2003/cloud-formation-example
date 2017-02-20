@@ -271,7 +271,19 @@
 							"Effect" : "Allow",
 							"Action" : "s3:GetObject",
 							"Resource" : "*"
-						},
+						}
+					]
+				},
+				"Roles" : [ { "Ref" : "RoleForSlaveNode" } ]
+			}
+		},
+
+		"EC2AccessPolicy" : {
+			"Type" : "AWS::IAM::Policy",
+			"Properties" : {
+				"PolicyName" : "EC2Access",
+				"PolicyDocument" : {
+					"Statement" : [
 						{
 							"Effect" : "Allow",
 							"Action" : "ec2:DescribeInstances",
@@ -338,6 +350,11 @@
 		"S3AccessPolicyId" : {
 			"Description" : "The ID of the IAM access policy for S3",
 			"Value" : { "Ref" : "S3AccessPolicy" }
+		},
+
+		"EC2AccessPolicyId" : {
+			"Description" : "The ID of the IAM access policy for EC2",
+			"Value" : { "Ref" : "EC2AccessPolicy" }
 		},
 
 		"SlaveNodeInstanceProfileId" : {
