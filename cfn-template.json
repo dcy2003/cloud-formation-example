@@ -40,28 +40,11 @@
     		"ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
     	},
 
-    	"S3LocationOfPrivateKey" : {
-    		"Description" : "The S3 location of the private key that will be used to SSH from Ansible node to slave nodes",
-    		"Type" : "String",
-    		"AllowedPattern" : "^s3://.*",
-    		"ConstraintDescription" : "Must be of the format s3://bucket_path/file"
-    	},
-
     	"InstanceType" : {
     		"Description" : "",
     		"Type" : "String",
     		"Default" : "t2.micro",
     		"AllowedValues" : [ "t2.micro", "t2.nano", "t2.small" ]
-    	},
-
-    	"AnsibleNodePrivateIP" : {
-			"Description" : "The private IP of the Ansible node",
-			"Type" : "String",
-			"MinLength" : "7",
-			"MaxLength" : "15",
-			"Default" : "10.0.0.10",
-			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
-			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
     	},
 
     	"SlaveNode1PrivateIP" : {
@@ -72,28 +55,6 @@
 			"Default" : "10.0.0.11",
 			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
 			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
-    	},
-
-    	"SlaveNode2PrivateIP" : {
-			"Description" : "The private IP of the second slave node",
-			"Type" : "String",
-			"MinLength" : "7",
-			"MaxLength" : "15",
-			"Default" : "10.0.0.12",
-			"AllowedPattern" : "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})",
-			"ConstraintDescription" : "must be a valid IP of the form x.x.x.x"
-    	},
-
-    	"GitHubRepository" : {
-    		"Description" : "The GitHub repository to pull Ansible playbook from",
-    		"Type" : "String",
-    		"AllowedPattern" : "^git@github.com:.*",
-    		"ConstraintDescription" : "Must be of the format git@github.com:user/repository.git (use SSH not HTTPS repository location)"
-    	},
-
-    	"AnsiblePlaybook" : {
-    		"Description" : "The Ansible playbook to execute against the slave nodes",
-    		"Type" : "String"
     	}
 
 	},
@@ -104,6 +65,7 @@
 			"us-east-2" : { "amiId" : "ami-c55673a0", "sshUser" : "ec2-user" },
 			"us-west-1" : { "amiId" : "ami-165a0876", "sshUser" : "ec2-user" },
 			"us-west-2" : { "amiId" : "ami-f173cc91", "sshUser" : "ec2-user" },
+			"ca-central-1" : { "amiId" : "ami-ebed508f", "sshUser" : "ec2-user" },
 			"us-iso-east-1" : { "amiId" : "C2S_AMI_ID_GOES_HERE", "sshUser" : "ec2-user" }
 		}
 	},
@@ -251,91 +213,8 @@
 
 		"SlaveNode1" : {
 			"Type" : "AWS::EC2::Instance",
+			"DependsOn" : [ "AttachInternetGatewayToVPC" ],
 			"Properties" : {
-				"InstanceType" : { "Ref" : "InstanceType" },
-				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
-				"KeyName" : { "Ref" : "EC2SshKey" },
-				"SubnetId" : { "Ref" : "PublicSubnet" },
-				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
-				"PrivateIpAddress" : { "Ref" : "SlaveNode1PrivateIP" },
-				"BlockDeviceMappings" : [
-					{
-						"DeviceName" : "/dev/xvda",
-						"Ebs" : {
-							"VolumeType" : "gp2",
-							"DeleteOnTermination" : "true",
-							"VolumeSize" : "8"
-						}
-					}
-				],
-				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
-			}
-		},
-
-		"SlaveNode2" : {
-			"Type" : "AWS::EC2::Instance",
-			"Properties" : {
-				"InstanceType" : { "Ref" : "InstanceType" },
-				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
-				"KeyName" : { "Ref" : "EC2SshKey" },
-				"SubnetId" : { "Ref" : "PublicSubnet" },
-				"SecurityGroupIds" : [ { "Ref" : "InstanceSecurityGroup" } ],
-				"PrivateIpAddress" : { "Ref" : "SlaveNode2PrivateIP" },
-				"BlockDeviceMappings" : [
-					{
-						"DeviceName" : "/dev/xvda",
-						"Ebs" : {
-							"VolumeType" : "gp2",
-							"DeleteOnTermination" : "true",
-							"VolumeSize" : "8"
-						}
-					}
-				],
-				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
-			}
-		},
-
-		"AnsibleNode" : {
-			"Type" : "AWS::EC2::Instance",
-			"DependsOn" : [ "AttachInternetGatewayToVPC" , "SlaveNode1", "SlaveNode2" ],
-			"Metadata" : {
-				"AWS::CloudFormation::Init" : {
-					"config" : {
-						"packages" : {
-							"yum" : {
-								"git" : [],
-								"jq" : []
-							}
-						},
-						"groups" : {},
-						"users" : {},
-						"sources" : {},
-						"files" : {
-							"/etc/ansible/hosts" : {
-								"content" : "[slaves]\n",
-								"mode" : "000600",
-								"owner" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] },
-								"group" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }
-							},
-							"/root/.ssh/config" : {
-								"content" : { "Fn::Join" : ["", [
-									"Host github.com\n",
-									"  RSAAuthentication yes\n",
-									"  User ", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "\n",
-									"  IdentityFile /home/", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "/.ssh/ssh-key.pem\n\n"
-								]]},
-								"mode" : "000400",
-								"owner" : "root",
-								"group" : "root"
-							}
-						},
-						"commands" : {},
-						"services" : {}
-					}
-				}
-			},
-			"Properties" : {
-				"IamInstanceProfile" : { "Ref" : "S3InstanceProfile" },
 				"InstanceType" : { "Ref" : "InstanceType" },
 				"ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "amiId" ] },
 				"KeyName" : { "Ref" : "EC2SshKey" },
@@ -356,81 +235,10 @@
 						"DeviceIndex" : "0",
 						"SubnetId" : { "Ref" : "PublicSubnet" },
 						"GroupSet" : [ { "Ref" : "InstanceSecurityGroup" } ],
-						"PrivateIpAddress" : { "Ref" : "AnsibleNodePrivateIP" }
+						"PrivateIpAddress" : { "Ref" : "SlaveNode1PrivateIP" }
 					}
 				],
-				"UserData" : { "Fn::Base64" :
-					{ "Fn::Join" : ["", [
-						"#!/bin/bash -xe\n",
-
-						"# Install the files and packages from the metadata\n",
-						"/opt/aws/bin/cfn-init -v ",
-						"         --stack ", { "Ref" : "AWS::StackName" },
-						"         --resource AnsibleNode ",
-						"         --region ", { "Ref" : "AWS::Region" }, "\n",
-
-						"# Install Ansible\n",
-						"pip install ansible\n",
-
-						"# Variable Declarations\n",
-						"region=", { "Ref" : "AWS::Region" }, "\n",
-						"ssh_user=", { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "sshUser" ] }, "\n",
-						"slave_node_ssh_key=/home/$ssh_user/.ssh/ssh-key.pem\n",
-						"s3_key_location=", { "Ref" : "S3LocationOfPrivateKey" }, "\n",
-						"ssh_user_known_hosts=/home/$ssh_user/.ssh/known_hosts\n",
-						"ssh_user_ssh_config=/home/$ssh_user/.ssh/config\n",
-						"temp_dir=/usr/tmp\n",
-						"git_repo=", { "Ref" : "GitHubRepository" }, "\n",
-						"ansible_playbook=", { "Ref" : "AnsiblePlaybook" }, "\n",
-
-						"# Download SSH key from S3\n",
-						"aws s3 cp --region $region $s3_key_location $slave_node_ssh_key\n",
-						"chmod 400 $slave_node_ssh_key\n",
-						"chown $ssh_user:$ssh_user $slave_node_ssh_key\n",
-
-						"# Dynamically add IPs of slave nodes to config files\n",
-						"touch ~/.ssh/known_hosts\n",
-						"chmod 600 ~/.ssh/known_hosts\n",
-						"chown root:root ~/.ssh/known_hosts\n",
-						"slaveips=`aws ec2 describe-instances --region $region --filters 'Name=tag:Name,Values=SlaveNode' | jq -r '.Reservations[].Instances[].NetworkInterfaces[] | .PrivateIpAddress'`\n",
-						"idx=1\n",
-						"for slaveip in $slaveips\n",
-						"do\n",
-						"  ssh-keyscan -H $slaveip >> ~/.ssh/known_hosts\n",
-						"  echo \"$slaveip ansible_user=$ssh_user ansible_connection=ssh ansible_ssh_private_key_file=$slave_node_ssh_key\" >> /etc/ansible/hosts\n",
-						"  echo \"Host slave$idx\" >> ~/.ssh/config\n",
-						"  echo \"  HostName $slaveip\" >> ~/.ssh/config\n",
-						"  echo \"  User $ssh_user\" >> ~/.ssh/config\n",
-						"  echo \"  IdentityFile $slave_node_ssh_key\n\" >> ~/.ssh/config\n",
-						"  ((idx+=1))\n",
-						"done\n",
-
-						"# Add github.com and its associated IPs to known_hosts\n",
-						"ssh-keyscan -H github.com >> ~/.ssh/known_hosts\n",
-						"for github_ip in `dig +short github.com`\n",
-						"do\n",
-						"  ssh-keyscan -H $github_ip >> ~/.ssh/known_hosts\n",
-						"done\n",
-
-						"# Mirror ec2-users known_hosts file with root version\n",
-						"cat ~/.ssh/known_hosts >> $ssh_user_known_hosts\n",
-						"chmod 600 $ssh_user_known_hosts\n",
-						"chown $ssh_user:$ssh_user $ssh_user_known_hosts\n",
-
-						"# Mirror ec2-users .ssh/config file with root version\n",
-						"cat ~/.ssh/config >> $ssh_user_ssh_config\n",
-						"chmod 400 $ssh_user_ssh_config\n",
-						"chown $ssh_user:$ssh_user $ssh_user_ssh_config\n",
-
-						"# Pull Ansible playbook from Git repository\n",
-						"cd $temp_dir\n",
-						"git clone $git_repo .\n",
-
-						"# Execute Playbook\n",
-						"/usr/local/bin/ansible-playbook $ansible_playbook\n"
-					]]}
-				},
-				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "AnsibleNode" } ]
+				"Tags" : [ { "Key" : "StackId", "Value" : { "Ref" : "AWS::StackId" } }, { "Key" : "Name", "Value" : "SlaveNode" } ]
 			}
 		},
 
@@ -516,19 +324,9 @@
 			"Value" : { "Ref" : "InstanceSecurityGroup" }
 		},
 
-		"AnsibleNodeId" : {
-			"Description" : "The ID of the Ansible instance",
-			"Value" : { "Ref" : "AnsibleNode" }
-		},
-
 		"SlaveNode1Id" : {
 			"Description" : "The ID of the first slave instance",
 			"Value" : { "Ref" : "SlaveNode1" }
-		},
-
-		"SlaveNode2Id" : {
-			"Description" : "The ID of the second slave instance",
-			"Value" : { "Ref" : "SlaveNode2" }
 		}
 
 	}
